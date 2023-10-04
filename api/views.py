@@ -14,10 +14,16 @@ from sklearn.model_selection import train_test_split
 
 
 module_dir = os.path.dirname(__file__)
-file_path = os.path.join(module_dir, 'Training new.csv')
 
+file_path = os.path.join(module_dir, 'Training new.csv')
 train_df = pd.read_csv(file_path)
 train_df.head()
+
+file_path = os.path.join(module_dir, 'disease_precaution.csv')
+df = pd.read_csv(file_path)
+precaution = {}
+for i, row in df.iterrows():
+    precaution[row['Disease']] = [row['Symptom_precaution_0'] , row['Symptom_precaution_1'] , str(row['Symptom_precaution_2']) , str(row['Symptom_precaution_3'])]
 
 l1 = list(train_df.columns[:-1])
 l1.append('aaa')
@@ -61,10 +67,15 @@ def randomforest(psymptoms):
 # Create your views here.
 @csrf_exempt 
 def main(request):
-    symptoms = json.loads(request.body.decode('utf-8'))['diseases']
+    symptoms = json.loads(request.body.decode('utf-8'))['symptoms']
     print(symptoms)
-    
-    return HttpResponse(randomforest(symptoms))
+    disease = randomforest(symptoms)
+    response = {
+        'disease' : disease,
+        'precautions' : precaution[disease]
+    }
+
+    return HttpResponse(json.dumps(response))
 
 class RoomView(generics.CreateAPIView):
     queryset = Room.objects.all()
